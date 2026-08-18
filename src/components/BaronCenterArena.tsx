@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Flame } from 'lucide-react';
+import { Flame, Sparkles } from 'lucide-react';
 import { useGame } from '../context/GameContext';
+import { PixelMasterYi } from './PixelMasterYi';
+import { PixelBaron } from './PixelBaron';
 
 export const BaronCenterArena: React.FC = () => {
   const {
@@ -17,13 +19,15 @@ export const BaronCenterArena: React.FC = () => {
     xpProgressPercent,
   } = useGame();
 
-  const [isSlashing, setIsSlashing] = useState(false);
+  const [isAttacking, setIsAttacking] = useState(false);
   const [isBaronHit, setIsBaronHit] = useState(false);
+  const [attackVariant, setAttackVariant] = useState(0);
+  const [isAlphaActive, setIsAlphaActive] = useState(false);
   const [slashAngle, setSlashAngle] = useState(45);
   const [slashPosition, setSlashPosition] = useState({ x: 50, y: 50 });
   const arenaRef = useRef<HTMLDivElement>(null);
 
-  const handleBaronClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleArenaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     let clickX = e.clientX;
     let clickY = e.clientY;
 
@@ -34,37 +38,53 @@ export const BaronCenterArena: React.FC = () => {
       setSlashPosition({ x: relativeX, y: relativeY });
     }
 
-    setSlashAngle(Math.floor(Math.random() * 90) - 45);
+    // Cycle through 3 attack animation variations (horizontal slash, overhead chop, piercing thrust)
+    setAttackVariant((prev) => (prev + 1) % 3);
+    setSlashAngle(Math.floor(Math.random() * 80) - 40);
 
-    setIsSlashing(true);
+    setIsAttacking(true);
     setIsBaronHit(true);
 
-    setTimeout(() => setIsSlashing(false), 140);
-    setTimeout(() => setIsBaronHit(false), 120);
+    setTimeout(() => setIsAttacking(false), 130);
+    setTimeout(() => setIsBaronHit(false), 140);
 
     clickBaron(clickX, clickY);
   };
 
+  const handleAlphaStrikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAlphaReady) return;
+
+    setIsAlphaActive(true);
+    setIsBaronHit(true);
+    triggerAlphaStrike();
+
+    setTimeout(() => {
+      setIsAlphaActive(false);
+      setIsBaronHit(false);
+    }, 600);
+  };
+
   return (
     <main className="flex-1 flex flex-col items-center justify-between min-w-0 max-w-2xl w-full select-none">
-      {/* Top Banner: Vibrant Next Level XP Bar */}
+      {/* Top Banner: Next Level XP Bar & Progress */}
       <div className="w-full text-center mb-3">
         <div className="flex items-center justify-between px-2 text-xs uppercase tracking-[0.2em] text-[#a09b8c] font-bold">
           <span>Level {state.level}</span>
-          <span className="tracking-[0.3em] text-[#00c8c8]">
+          <span className="tracking-[0.25em] text-[#00c8c8]">
             Next Level: {Math.max(0, xpNeeded - Math.round(state.xp))} XP
           </span>
           <span>Level {state.level + 1}</span>
         </div>
 
-        <div className="w-full h-2.5 bg-[#1e2328] mx-auto mt-2 rounded-full border border-[#c89b3c]/30 overflow-hidden shadow-inner p-0.5">
+        <div className="w-full h-2.5 bg-[#1e2328] mx-auto mt-2 rounded-full border border-[#c8aa6e]/30 overflow-hidden shadow-inner p-0.5">
           <div
             className="h-full bg-gradient-to-r from-[#00c8c8] via-[#38bdf8] to-[#005a82] rounded-full shadow-[0_0_10px_#00c8c8] transition-all duration-200"
             style={{ width: `${xpProgressPercent}%` }}
           ></div>
         </div>
 
-        {/* Combo Multiplier Meter */}
+        {/* Combo Multiplier Tag */}
         {combo > 0 && (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -77,58 +97,58 @@ export const BaronCenterArena: React.FC = () => {
         )}
       </div>
 
-      {/* Center Interactive Battle Arena (Vibrant Palette Diamond Design) */}
+      {/* Center Interactive Battle Arena with Pixel Art Master Yi vs Baron Nashor */}
       <div
         ref={arenaRef}
-        onClick={handleBaronClick}
-        className="relative w-full aspect-square max-h-[460px] bg-gradient-to-b from-[#0a1428] to-[#010a13] border-2 border-[#1e2328] rounded-sm overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.9)] cursor-pointer group flex flex-col items-center justify-center p-4 relative"
+        onClick={handleArenaClick}
+        className="relative w-full aspect-square max-h-[460px] bg-gradient-to-b from-[#0a1428] via-[#040c17] to-[#010a13] border-2 border-[#005a82]/50 hover:border-[#00c8c8] rounded-sm overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.9)] cursor-pointer group flex flex-col items-center justify-center p-4 relative transition-colors duration-200"
       >
-        {/* Radiant Cyan Glow on Hover */}
-        <div className="absolute -inset-12 bg-[#00c8c8] rounded-full opacity-5 blur-3xl group-hover:opacity-10 transition-opacity pointer-events-none"></div>
+        {/* Subtle Toxic / Void Arena Environment Floor */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#005a82]/15 via-transparent to-transparent pointer-events-none"></div>
 
-        {/* Diamond Rotated Baron Crest */}
-        <div className="relative group cursor-pointer active:scale-95 transition-transform duration-75 flex flex-col items-center justify-center">
-          <div className="w-60 h-60 sm:w-64 sm:h-64 flex items-center justify-center">
-            <div className="w-44 h-44 sm:w-48 sm:h-48 bg-[#1e2328] border-4 border-[#c8aa6e] rotate-45 shadow-2xl overflow-hidden flex items-center justify-center relative">
-              <div className="-rotate-45 w-[140%] h-[140%] flex flex-col items-center justify-center relative">
-                <img
-                  src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/ChoGath_0.jpg"
-                  alt="Baron Nashor"
-                  className={`w-full h-full object-cover transition-transform duration-100 ${
-                    isBaronHit ? 'scale-110 brightness-150' : 'group-hover:scale-105'
-                  }`}
-                  draggable={false}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#010a13] via-transparent to-black/30"></div>
-
-                <span className="absolute bottom-6 font-black tracking-widest text-[#c8aa6e] drop-shadow-lg text-lg uppercase font-['Cinzel',serif]">
-                  BARON
-                </span>
-              </div>
+        {/* Pixel Battle Arena Stage */}
+        <div className="relative w-full h-full flex flex-col items-center justify-center">
+          {/* BARON NASHOR (Pixel Art Boss at Center Top) */}
+          <div className="relative z-10 flex flex-col items-center -mt-6">
+            {/* Baron Health / Name Header Tag */}
+            <div className="mb-1 flex items-center gap-2 bg-[#010a13]/90 border border-[#800080]/60 px-3 py-0.5 rounded-xs shadow">
+              <span className="text-[11px] font-black tracking-widest text-[#d442f5] uppercase font-['Cinzel',serif]">
+                BARON NASHOR
+              </span>
+              <span className="text-[9px] text-[#a09b8c] font-bold">
+                Lv.{state.level}
+              </span>
             </div>
+
+            {/* Pixel Baron Sprite */}
+            <PixelBaron isHit={isBaronHit} />
           </div>
 
-          {/* Master Yi Striker Tag & Avatar */}
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-            <div className="w-12 h-12 bg-[#0a1428] border-2 border-[#00c8c8] rounded-full p-0.5 overflow-hidden shadow-[0_0_12px_#00c8c8]">
-              <img
-                src="https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/MasterYi.png"
-                alt="Master Yi"
-                className="w-full h-full rounded-full grayscale group-hover:grayscale-0 transition-all"
-              />
+          {/* MASTER YI (Pixel Art Striker at Bottom Center Facing Baron) */}
+          <div className="relative z-20 -mt-10 flex flex-col items-center">
+            {/* Master Yi Pixel Component */}
+            <PixelMasterYi
+              isAttacking={isAttacking}
+              attackVariant={attackVariant}
+              isAlphaStrike={isAlphaActive}
+            />
+
+            {/* Striker Tag */}
+            <div className="mt-1 flex items-center gap-1.5 bg-[#010a13]/90 border border-[#00c8c8]/50 px-2.5 py-0.5 rounded-xs shadow">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-ping"></div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#00c8c8]">
+                Master Yi • Wuju Master
+              </span>
             </div>
-            <span className="font-bold uppercase tracking-wider text-xs text-[#00c8c8]">
-              Striking...
-            </span>
           </div>
         </div>
 
-        {/* Slash Visual FX Overlay */}
+        {/* Real-time Pixel Slash Wave Visual FX on Click */}
         <AnimatePresence>
-          {isSlashing && (
+          {isAttacking && (
             <motion.div
-              initial={{ opacity: 1, scaleX: 0.2 }}
-              animate={{ opacity: [1, 0.8, 0], scaleX: 1.4 }}
+              initial={{ opacity: 1, scaleX: 0.3 }}
+              animate={{ opacity: [1, 0.9, 0], scaleX: 1.4 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               style={{
@@ -139,8 +159,8 @@ export const BaronCenterArena: React.FC = () => {
               }}
               className="pointer-events-none z-30 flex items-center justify-center"
             >
-              <div className="w-56 h-1.5 bg-gradient-to-r from-transparent via-[#00c8c8] to-transparent shadow-[0_0_20px_#00c8c8]"></div>
-              <div className="absolute w-28 h-1 bg-white shadow-[0_0_15px_#ffffff]"></div>
+              <div className="w-48 h-2 bg-gradient-to-r from-transparent via-[#00ffcc] to-transparent shadow-[0_0_20px_#00ffcc]"></div>
+              <div className="absolute w-24 h-1 bg-white shadow-[0_0_12px_#ffffff]"></div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -169,27 +189,20 @@ export const BaronCenterArena: React.FC = () => {
           ))}
         </div>
 
-        {/* Bottom Hint & Dots */}
-        <div className="absolute bottom-3 flex flex-col items-center gap-1">
-          <span className="text-[10px] text-[#a09b8c] uppercase tracking-widest font-bold">
-            Click to earn XP
+        {/* Bottom Click Hint */}
+        <div className="absolute bottom-2 flex items-center gap-1.5 bg-[#010a13]/80 px-2.5 py-0.5 rounded border border-[#1e2328]">
+          <Sparkles className="w-3 h-3 text-[#c8aa6e]" />
+          <span className="text-[9px] text-[#a09b8c] uppercase tracking-widest font-bold">
+            Click to attack Baron
           </span>
-          <div className="flex gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#c89b3c]"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-[#c89b3c] opacity-50"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-[#c89b3c] opacity-25"></div>
-          </div>
         </div>
       </div>
 
-      {/* Bottom Controls: Master Yi Q Skill (Alpha Strike) */}
+      {/* Bottom Skill Bar: Master Yi Q Skill (Alpha Strike) */}
       <div className="w-full mt-3 flex items-center justify-between gap-3 bg-[#010a13] border border-[#005a82] p-3 rounded-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerAlphaStrike();
-            }}
+            onClick={handleAlphaStrikeClick}
             disabled={!isAlphaReady}
             className={`relative w-12 h-12 rounded-sm border-2 overflow-hidden flex flex-col items-center justify-center transition-all cursor-pointer ${
               isAlphaReady
@@ -227,7 +240,7 @@ export const BaronCenterArena: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold uppercase tracking-wider text-xs text-[#c8aa6e]">
-                Q: Alfa Vuruşu
+                Q: Alfa Vuruşu (Alpha Strike)
               </span>
               {isAlphaReady ? (
                 <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#0a323c] text-[#00c8c8] border border-[#005a82]">
@@ -238,7 +251,7 @@ export const BaronCenterArena: React.FC = () => {
               )}
             </div>
             <p className="text-[10px] text-[#a09b8c] mt-0.5">
-              Deals 4 critical strikes for massive XP burst.
+              4 phantom pixel strikes for massive XP burst.
             </p>
           </div>
         </div>

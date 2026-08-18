@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Key, Sparkles, Volume2, VolumeX, History, Zap } from 'lucide-react';
+import { Key, Sparkles, Zap } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { getRarityLabel } from '../services/dataDragon';
 
 export const RightHextechPanel: React.FC = () => {
-  const { state, openChest, toggleSound, setVolume } = useGame();
+  const { state, openChest } = useGame();
   const [isOpeningAnim, setIsOpeningAnim] = useState(false);
 
   const handleChestClick = (count: number) => {
@@ -21,14 +21,14 @@ export const RightHextechPanel: React.FC = () => {
   };
 
   return (
-    <aside className="w-full lg:w-72 bg-[#010a13] border-l border-[#1e2328] flex flex-col p-4 gap-4 text-[#f0e6d2]">
-      {/* 1. Open Hextech Chest Box (Vibrant Palette style) */}
-      <div className="bg-[#1e2328]/30 border border-[#c8aa6e]/20 p-3 rounded-sm flex flex-col items-center">
-        <h3 className="text-[10px] font-bold uppercase text-[#c8aa6e] mb-2 tracking-widest">
+    <aside className="w-full lg:w-72 bg-[#010a13] border-l border-[#1e2328] flex flex-col p-4 gap-4 text-[#f0e6d2] select-none">
+      {/* 1. Open Hextech Chest Box */}
+      <div className="bg-[#1e2328]/30 border border-[#c8aa6e]/20 p-4 rounded-sm flex flex-col items-center">
+        <h3 className="text-xs font-bold uppercase text-[#c8aa6e] mb-3 tracking-widest">
           Open Hextech Chest
         </h3>
 
-        {/* Vibrant Palette Chest Visual */}
+        {/* Chest 3D Visual Box */}
         <motion.div
           animate={
             isOpeningAnim
@@ -41,17 +41,17 @@ export const RightHextechPanel: React.FC = () => {
               : { duration: 3, repeat: Infinity, ease: 'easeInOut' }
           }
           onClick={() => handleChestClick(1)}
-          className="w-24 h-24 bg-gradient-to-br from-[#c89b3c] to-[#785a28] p-1 rounded-sm shadow-xl cursor-pointer hover:brightness-125 transition-all"
+          className="w-28 h-28 bg-gradient-to-br from-[#c89b3c] to-[#785a28] p-1 rounded-sm shadow-xl cursor-pointer hover:brightness-125 transition-all"
         >
           <div className="w-full h-full bg-[#010a13] flex flex-col items-center justify-center border border-[#c89b3c]/50 relative group">
-            <Sparkles className="w-6 h-6 text-[#c8aa6e] mb-1 group-hover:scale-110 transition-transform" />
+            <Sparkles className="w-7 h-7 text-[#c8aa6e] mb-1.5 group-hover:scale-110 transition-transform" />
             <span className="text-xs font-bold text-[#c8aa6e] tracking-widest uppercase">
               CHEST
             </span>
           </div>
         </motion.div>
 
-        <p className="text-[9px] text-[#a09b8c] mt-2 uppercase tracking-wider font-semibold">
+        <p className="text-[10px] text-[#a09b8c] mt-3 uppercase tracking-wider font-semibold">
           Costs 1 Key • You have {state.keys}
         </p>
 
@@ -85,46 +85,16 @@ export const RightHextechPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Audio Controller Bar */}
-      <div className="bg-[#1e2328]/30 border border-[#005a82]/40 p-2.5 rounded-sm flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleSound}
-            className={`p-1.5 rounded-sm border transition-colors cursor-pointer ${
-              state.soundEnabled
-                ? 'bg-[#0a1428] border-[#00c8c8] text-[#00c8c8]'
-                : 'bg-[#010a13] border-[#1e2328] text-[#a09b8c]'
-            }`}
-            title={state.soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
-          >
-            {state.soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-          </button>
-          <span className="text-[10px] uppercase tracking-wider text-[#a09b8c] font-bold">
-            SFX Audio
-          </span>
-        </div>
-
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          value={state.sfxVolume}
-          onChange={(e) => setVolume(parseFloat(e.target.value))}
-          className="w-16 accent-[#00c8c8] cursor-pointer"
-        />
-      </div>
-
-      {/* 3. Live Loot Feed (Vibrant Palette border-l accents) */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* 2. Live Loot Feed */}
+      <div className="flex-1 overflow-hidden flex flex-col bg-[#1e2328]/20 border border-[#005a82]/30 p-3 rounded-sm">
         <h3 className="text-xs font-bold uppercase text-[#00c8c8] mb-3 tracking-widest flex items-center justify-between">
           <span>Live Loot</span>
-          <span className="text-[9px] text-[#a09b8c] uppercase">Feed</span>
+          <span className="text-[9px] text-[#a09b8c] uppercase font-semibold">Feed</span>
         </h3>
 
         <div className="flex-1 space-y-2 overflow-y-auto pr-1">
           {state.recentDrops.length === 0 ? (
-            <div className="text-center py-6 text-[#5c5b57] text-[10px] uppercase">
+            <div className="text-center py-8 text-[#5c5b57] text-[10px] uppercase tracking-wider">
               No recent loot opened yet.
             </div>
           ) : (
@@ -141,7 +111,7 @@ export const RightHextechPanel: React.FC = () => {
               return (
                 <div
                   key={drop.id}
-                  className={`flex items-center gap-2.5 p-2 bg-[#1e2328]/50 border-l-2 ${borderClass} rounded-sm transition-all hover:bg-[#1e2328]`}
+                  className={`flex items-center gap-2.5 p-2 bg-[#010a13] border-l-2 ${borderClass} rounded-sm transition-all hover:bg-[#1e2328]/60`}
                 >
                   <div className="w-8 h-8 rounded-xs overflow-hidden bg-gray-900 border border-gray-700 shrink-0">
                     <img
