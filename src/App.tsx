@@ -45,7 +45,11 @@ export function GameApp() {
 
       {/* 4. Modals & Overlays */}
       <ChestOpenModal />
-      <InventoryModal isOpen={isInventoryOpen} onClose={() => setIsInventoryOpen(false)} />
+      <InventoryModal
+        isOpen={isInventoryOpen}
+        onClose={() => setIsInventoryOpen(false)}
+        onOpenPrestigeShop={() => setIsPrestigeShopOpen(true)}
+      />
       <PrestigeShopModal isOpen={isPrestigeShopOpen} onClose={() => setIsPrestigeShopOpen(false)} />
       <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
       <ToastContainer />

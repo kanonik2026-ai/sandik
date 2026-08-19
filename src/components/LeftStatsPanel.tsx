@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
 import { getRankTier } from '../services/dataDragon';
+import { AdSenseBanner } from './AdSenseBanner';
 
 interface LeftStatsPanelProps {
   onOpenInventory: () => void;
@@ -57,7 +58,7 @@ export const LeftStatsPanel: React.FC<LeftStatsPanelProps> = ({
       </div>
 
       {/* 2. Inventory Preview Box */}
-      <div className="bg-[#1e2328]/30 border border-[#c8aa6e]/20 p-4 rounded-sm flex-1 flex flex-col justify-between">
+      <div className="bg-[#1e2328]/30 border border-[#c8aa6e]/20 p-4 rounded-sm flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-bold uppercase text-[#c8aa6e] tracking-widest">
@@ -109,6 +110,14 @@ export const LeftStatsPanel: React.FC<LeftStatsPanelProps> = ({
           View Collection ({state.inventory.length})
         </button>
       </div>
+
+      {/* 3. Google AdSense Unit (Left Sidebar) */}
+      <AdSenseBanner
+        slotId="9876543210"
+        label="Sponsorlu / Reklam"
+        className="mt-auto"
+      />
     </aside>
   );
 };
+

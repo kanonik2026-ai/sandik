@@ -313,3 +313,13 @@ class SoundEngine {
 }
 
 export const soundFx = new SoundEngine();
+
+export const playChestOpenSound = (vol?: number) => {
+  if (vol !== undefined) soundFx.setVolume(vol);
+  soundFx.playChestOpen();
+};
+
+export const playLegendarySound = (vol?: number) => {
+  if (vol !== undefined) soundFx.setVolume(vol);
+  soundFx.playGemstoneDrop();
+};

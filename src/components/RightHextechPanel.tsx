@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Key, Sparkles, Zap } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { getRarityLabel } from '../services/dataDragon';
+import { AdSenseBanner } from './AdSenseBanner';
 
 export const RightHextechPanel: React.FC = () => {
   const { state, openChest } = useGame();
@@ -86,7 +87,7 @@ export const RightHextechPanel: React.FC = () => {
       </div>
 
       {/* 2. Live Loot Feed */}
-      <div className="flex-1 overflow-hidden flex flex-col bg-[#1e2328]/20 border border-[#005a82]/30 p-3 rounded-sm">
+      <div className="flex-1 min-h-[160px] overflow-hidden flex flex-col bg-[#1e2328]/20 border border-[#005a82]/30 p-3 rounded-sm">
         <h3 className="text-xs font-bold uppercase text-[#00c8c8] mb-3 tracking-widest flex items-center justify-between">
           <span>Live Loot</span>
           <span className="text-[9px] text-[#a09b8c] uppercase font-semibold">Feed</span>
@@ -94,7 +95,7 @@ export const RightHextechPanel: React.FC = () => {
 
         <div className="flex-1 space-y-2 overflow-y-auto pr-1">
           {state.recentDrops.length === 0 ? (
-            <div className="text-center py-8 text-[#5c5b57] text-[10px] uppercase tracking-wider">
+            <div className="text-center py-6 text-[#5c5b57] text-[10px] uppercase tracking-wider">
               No recent loot opened yet.
             </div>
           ) : (
@@ -141,6 +142,14 @@ export const RightHextechPanel: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 3. Google AdSense Unit (Right Sidebar) */}
+      <AdSenseBanner
+        slotId="1234567890"
+        label="Sponsorlu / Reklam"
+        className="mt-auto"
+      />
     </aside>
   );
 };
+
