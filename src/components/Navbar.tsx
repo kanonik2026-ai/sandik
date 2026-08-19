@@ -87,8 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               Orange Essence
             </span>
             <div className="flex items-center justify-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#00c8c8]" />
-              <span className="text-base md:text-xl font-bold text-[#00c8c8]">
+              <Sparkles className="w-3.5 h-3.5 text-[#ff8200] drop-shadow-[0_0_6px_rgba(255,130,0,0.6)]" />
+              <span className="text-base md:text-xl font-bold text-[#ff8200] drop-shadow-[0_0_6px_rgba(255,130,0,0.4)]">
                 {state.orangeEssence}
               </span>
             </div>

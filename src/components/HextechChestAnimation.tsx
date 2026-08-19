@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, HelpCircle, Key, Shield } from 'lucide-react';
 import { soundFx } from '../services/soundEffects';
@@ -14,6 +14,18 @@ interface HextechChestAnimationProps {
   volume: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  color: string;
+  alpha: number;
+  decay: number;
+  life: number;
+}
+
 export const HextechChestAnimation: React.FC<HextechChestAnimationProps> = ({
   drops,
   onClaimDrop,
@@ -27,10 +39,117 @@ export const HextechChestAnimation: React.FC<HextechChestAnimationProps> = ({
   const [openStep, setOpenStep] = useState<number>(0); // 0: gears unlocking, 1: radiant blast, 2: explode to portal
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isTransitioningDrop, setIsTransitioningDrop] = useState<boolean>(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const totalDrops = drops.length;
   const currentDrop = drops[currentIndex] || drops[0];
   const hasMore = currentIndex < totalDrops - 1;
+
+  // Canvas particle explosion system
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: Particle[] = [];
+
+    const resize = () => {
+      canvas.width = canvas.parentElement?.clientWidth || 500;
+      canvas.height = canvas.parentElement?.clientHeight || 500;
+    };
+    resize();
+
+    // Spawn burst particles on step 1 and step 2
+    const spawnExplosion = (count: number) => {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const colors = ['#00ffff', '#38bdf8', '#c8aa6e', '#ffffff', '#0070ba'];
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 2;
+        particles.push({
+          x: centerX,
+          y: centerY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 4 + 1.5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.015,
+          life: 1,
+        });
+      }
+    };
+
+    // Ambient floating arcane dust motes
+    const spawnAmbientMote = () => {
+      if (particles.length < 35) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: canvas.height + 10,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: -(Math.random() * 1.5 + 0.5),
+          size: Math.random() * 2.5 + 1,
+          color: Math.random() > 0.4 ? '#00ffff' : '#c8aa6e',
+          alpha: Math.random() * 0.7 + 0.3,
+          decay: 0.005,
+          life: 1,
+        });
+      }
+    };
+
+    let tick = 0;
+    const render = () => {
+      tick++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (tick % 6 === 0) {
+        spawnAmbientMote();
+      }
+
+      // Update & render particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    // Trigger burst on timing
+    const tSpawn1 = setTimeout(() => spawnExplosion(45), 600);
+    const tSpawn2 = setTimeout(() => spawnExplosion(80), 1200);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      clearTimeout(tSpawn1);
+      clearTimeout(tSpawn2);
+    };
+  }, []);
 
   // Trigger opening audio & stages on mount
   useEffect(() => {
@@ -87,6 +206,9 @@ export const HextechChestAnimation: React.FC<HextechChestAnimationProps> = ({
 
   return (
     <div className="relative w-full min-h-[520px] md:min-h-[580px] flex flex-col items-center justify-between p-4 md:p-6 overflow-hidden select-none bg-radial from-[#091e30]/80 via-[#030d17]/95 to-[#010a13] text-[#f0e6d2]">
+      {/* Background Arcane Canvas for Sparks & Light Motes */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10" />
+
       {/* 1. Background Arcane Mist / Particle Rays */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Subtle cyan smoke bloom */}
@@ -121,6 +243,18 @@ export const HextechChestAnimation: React.FC<HextechChestAnimationProps> = ({
               transition={{ duration: 0.35 }}
               className="relative w-full max-w-sm h-64 md:h-72 flex items-center justify-center"
             >
+              {/* Expanding Shockwave Ring on Burst */}
+              {openStep >= 1 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.2 }}
+                  animate={{ opacity: [0, 0.9, 0], scale: [0.2, 1.8, 2.5] }}
+                  transition={{ duration: 0.85, ease: 'easeOut' }}
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+                >
+                  <div className="w-64 h-64 rounded-full border-2 border-[#00ffff] shadow-[0_0_30px_#00ffff]"></div>
+                </motion.div>
+              )}
+
               {/* Radial Magic Rays on Burst */}
               {openStep >= 1 && (
                 <motion.div
