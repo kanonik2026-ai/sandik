@@ -235,36 +235,127 @@ class SoundEngine {
 
     const now = this.ctx.currentTime;
 
-    // Clockwork gear click
-    const osc1 = this.ctx.createOscillator();
-    const gain1 = this.ctx.createGain();
-    osc1.type = 'square';
-    osc1.frequency.setValueAtTime(220, now);
-    osc1.frequency.setValueAtTime(440, now + 0.05);
-    osc1.frequency.setValueAtTime(660, now + 0.1);
-    gain1.gain.setValueAtTime(this.volume * 0.25, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-    osc1.connect(gain1);
-    gain1.connect(this.ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.2);
+    // Heavy mechanical gear clicks
+    [200, 350, 520, 680].forEach((freq, idx) => {
+      setTimeout(() => {
+        if (!this.ctx) return;
+        const clickTime = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, clickTime);
+        osc.frequency.exponentialRampToValueAtTime(100, clickTime + 0.08);
+        gain.gain.setValueAtTime(this.volume * 0.35, clickTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(clickTime);
+        osc.stop(clickTime + 0.09);
+      }, idx * 60);
+    });
 
-    // Magical crystal opening explosion after 250ms
+    // Deep power charging bass swell
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sawtooth';
+    subOsc.frequency.setValueAtTime(80, now);
+    subOsc.frequency.exponentialRampToValueAtTime(280, now + 0.6);
+    subGain.gain.setValueAtTime(0.001, now);
+    subGain.gain.linearRampToValueAtTime(this.volume * 0.4, now + 0.5);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    subOsc.connect(subGain);
+    subGain.connect(this.ctx.destination);
+    subOsc.start(now);
+    subOsc.stop(now + 0.75);
+
+    // Magical crystal opening explosion after 500ms
     setTimeout(() => {
       if (!this.ctx) return;
       const burstTime = this.ctx.currentTime;
       const burstOsc = this.ctx.createOscillator();
       const burstGain = this.ctx.createGain();
       burstOsc.type = 'sine';
-      burstOsc.frequency.setValueAtTime(300, burstTime);
-      burstOsc.frequency.exponentialRampToValueAtTime(1100, burstTime + 0.35);
-      burstGain.gain.setValueAtTime(this.volume * 0.55, burstTime);
-      burstGain.gain.exponentialRampToValueAtTime(0.001, burstTime + 0.5);
+      burstOsc.frequency.setValueAtTime(320, burstTime);
+      burstOsc.frequency.exponentialRampToValueAtTime(1280, burstTime + 0.45);
+      burstGain.gain.setValueAtTime(this.volume * 0.6, burstTime);
+      burstGain.gain.exponentialRampToValueAtTime(0.001, burstTime + 0.65);
       burstOsc.connect(burstGain);
       burstGain.connect(this.ctx.destination);
       burstOsc.start(burstTime);
-      burstOsc.stop(burstTime + 0.55);
-    }, 250);
+      burstOsc.stop(burstTime + 0.7);
+
+      // Arcane shimmer sparkle notes
+      [784, 987, 1318, 1567].forEach((f, i) => {
+        setTimeout(() => {
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const sOsc = this.ctx.createOscillator();
+          const sGain = this.ctx.createGain();
+          sOsc.type = 'triangle';
+          sOsc.frequency.setValueAtTime(f, t);
+          sGain.gain.setValueAtTime(this.volume * 0.4, t);
+          sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          sOsc.connect(sGain);
+          sGain.connect(this.ctx.destination);
+          sOsc.start(t);
+          sOsc.stop(t + 0.45);
+        }, i * 50);
+      });
+    }, 550);
+  }
+
+  /**
+   * Add To Loot (Claim) sound: metallic whoosh & latch
+   */
+  public playAddToLoot() {
+    if (!this.isEnabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    
+    // Whoosh
+    const bufferSize = this.ctx.sampleRate * 0.12;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const output = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.exponentialRampToValueAtTime(2400, now + 0.12);
+    filter.Q.setValueAtTime(2, now);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(this.volume * 0.35, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noise.start(now);
+
+    // Chime latch
+    [659.25, 987.77].forEach((freq, idx) => {
+      setTimeout(() => {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(this.volume * 0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.3);
+      }, idx * 60);
+    });
   }
 
   /**

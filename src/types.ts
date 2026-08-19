@@ -1,5 +1,20 @@
 export type SkinRarity = 'Common' | 'Epic' | 'Legendary' | 'Ultimate' | 'Mythic' | 'Prestige';
 
+export type LootDropType = 'skin' | 'champion' | 'material' | 'chest' | 'key' | 'essence' | 'gemstone';
+
+export interface LootDrop {
+  id: string;
+  type: LootDropType;
+  title: string;
+  subtitle: string;
+  rarity?: SkinRarity;
+  imageUrl?: string;
+  skin?: SkinItem;
+  essenceAmount?: number;
+  keysAmount?: number;
+  gemstonesAmount?: number;
+}
+
 export interface SkinItem {
   id: string;
   championId: string;

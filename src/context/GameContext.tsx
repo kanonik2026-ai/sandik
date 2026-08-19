@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { GameState, SkinItem, PrestigeItem, RecentDrop, FloatingText } from '../types';
+import { GameState, SkinItem, PrestigeItem, RecentDrop, FloatingText, LootDrop } from '../types';
 import { loadSavedGame, saveGameState, resetSavedGame } from '../services/storage';
-import { getRandomSkinFromPool, BASE_SKINS_CATALOG } from '../services/dataDragon';
+import { getRandomSkinFromPool, BASE_SKINS_CATALOG, getRarityLabel } from '../services/dataDragon';
 import { soundFx } from '../services/soundEffects';
 
 export interface ToastMessage {
@@ -27,6 +27,7 @@ interface GameContextType {
   activeChestModal: {
     isOpen: boolean;
     unboxedSkins: SkinItem[];
+    unboxedDrops?: LootDrop[];
     currentIndex: number;
   } | null;
   
@@ -36,6 +37,7 @@ interface GameContextType {
   triggerAlphaStrike: () => void;
   openChest: (count?: number) => boolean;
   claimSkin: (skin: SkinItem) => void;
+  claimDrop?: (drop: LootDrop) => void;
   disenchantSkin: (skin: SkinItem) => void;
   buyPrestigeSkin: (item: PrestigeItem) => boolean;
   buyUpgrade: (upgradeId: string) => boolean;
@@ -360,9 +362,67 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     soundFx.playChestOpen();
 
     const unboxedList: SkinItem[] = [];
+    const dropItems: LootDrop[] = [];
+
     for (let i = 0; i < count; i++) {
       const skin = getRandomSkinFromPool();
       unboxedList.push(skin);
+
+      // Primary Skin Drop
+      dropItems.push({
+        id: `drop_skin_${Date.now()}_${i}_${Math.random()}`,
+        type: 'skin',
+        title: skin.skinName,
+        subtitle: `${getRarityLabel(skin.rarity)} Kostüm Kristali`,
+        rarity: skin.rarity,
+        imageUrl: skin.splashUrl,
+        skin: skin,
+      });
+
+      // Bonus Drop Chance (35% chance per chest, just like real LoL & video)
+      const bonusChance = Math.random();
+      if (bonusChance < 0.35) {
+        const bonusRoll = Math.random();
+        if (bonusRoll < 0.35) {
+          // Extra Hextech Key
+          dropItems.push({
+            id: `drop_key_${Date.now()}_${i}`,
+            type: 'key',
+            title: 'Hextech Anahtarı',
+            subtitle: 'Malzeme',
+            keysAmount: 1,
+          });
+        } else if (bonusRoll < 0.65) {
+          // Orange Essence
+          const essenceGained = 150;
+          dropItems.push({
+            id: `drop_oe_${Date.now()}_${i}`,
+            type: 'essence',
+            title: `${essenceGained} Turuncu Öz`,
+            subtitle: 'Malzeme',
+            essenceAmount: essenceGained,
+          });
+        } else if (bonusRoll < 0.85) {
+          // Bonus Hextech Chest
+          dropItems.push({
+            id: `drop_chest_${Date.now()}_${i}`,
+            type: 'chest',
+            title: 'Hextech Sandığı',
+            subtitle: 'Sandık',
+            keysAmount: 1, // grants a key to open the bonus chest
+          });
+        } else {
+          // Mor Cevher / Mythic Essence
+          dropItems.push({
+            id: `drop_gem_${Date.now()}_${i}`,
+            type: 'gemstone',
+            title: '1 Mor Cevher',
+            subtitle: 'İhtişamlı Öz',
+            rarity: 'Mythic',
+            gemstonesAmount: 1,
+          });
+        }
+      }
     }
 
     // Deduct keys and track total chests opened
@@ -387,6 +447,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveChestModal({
       isOpen: true,
       unboxedSkins: unboxedList,
+      unboxedDrops: dropItems,
       currentIndex: 0,
     });
 
@@ -426,6 +487,46 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     });
   }, [addToast]);
+
+  const claimDrop = useCallback((drop: LootDrop) => {
+    soundFx.playAddToLoot();
+    if (drop.type === 'skin' && drop.skin) {
+      claimSkin(drop.skin);
+    } else if (drop.type === 'key' && drop.keysAmount) {
+      setState(prev => ({ ...prev, keys: prev.keys + drop.keysAmount! }));
+      addToast({
+        title: '+1 Hextech Anahtarı!',
+        description: 'Envanterine yeni bir anahtar eklendi.',
+        type: 'key',
+        icon: '🗝️'
+      });
+    } else if (drop.type === 'essence' && drop.essenceAmount) {
+      setState(prev => ({ ...prev, orangeEssence: prev.orangeEssence + drop.essenceAmount! }));
+      addToast({
+        title: `+${drop.essenceAmount} Turuncu Öz!`,
+        description: 'Öz ganimetine eklendi.',
+        type: 'info',
+        icon: '🔶'
+      });
+    } else if (drop.type === 'gemstone' && drop.gemstonesAmount) {
+      setState(prev => ({ ...prev, gemstones: prev.gemstones + drop.gemstonesAmount! }));
+      soundFx.playGemstoneDrop();
+      addToast({
+        title: '+1 Mor Cevher!',
+        description: 'İhtişamlı Mağazada harcanabilir!',
+        type: 'gemstone',
+        icon: '💎'
+      });
+    } else if (drop.type === 'chest') {
+      setState(prev => ({ ...prev, keys: prev.keys + 1 }));
+      addToast({
+        title: '+1 Hextech Sandığı & Anahtarı!',
+        description: 'Bonus sandık kazandın!',
+        type: 'info',
+        icon: '🎁'
+      });
+    }
+  }, [claimSkin, addToast]);
 
   const disenchantSkin = useCallback((skin: SkinItem) => {
     soundFx.playButtonClick();
@@ -639,6 +740,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         triggerAlphaStrike,
         openChest,
         claimSkin,
+        claimDrop,
         disenchantSkin,
         buyPrestigeSkin,
         buyUpgrade,

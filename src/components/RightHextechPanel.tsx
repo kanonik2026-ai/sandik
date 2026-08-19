@@ -25,8 +25,9 @@ export const RightHextechPanel: React.FC = () => {
     <aside className="w-full lg:w-72 bg-[#010a13] border-l border-[#1e2328] flex flex-col p-4 gap-4 text-[#f0e6d2] select-none">
       {/* 1. Open Hextech Chest Box */}
       <div className="bg-[#1e2328]/30 border border-[#c8aa6e]/20 p-4 rounded-sm flex flex-col items-center">
-        <h3 className="text-xs font-bold uppercase text-[#c8aa6e] mb-3 tracking-widest">
-          Open Hextech Chest
+        <h3 className="text-xs font-bold uppercase text-[#c8aa6e] mb-3 tracking-widest flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#00c8c8]" />
+          <span>Hextech Sandığı Aç</span>
         </h3>
 
         {/* Chest 3D Visual Box */}
@@ -42,18 +43,41 @@ export const RightHextechPanel: React.FC = () => {
               : { duration: 3, repeat: Infinity, ease: 'easeInOut' }
           }
           onClick={() => handleChestClick(1)}
-          className="w-28 h-28 bg-gradient-to-br from-[#c89b3c] to-[#785a28] p-1 rounded-sm shadow-xl cursor-pointer hover:brightness-125 transition-all"
+          className="w-32 h-28 bg-gradient-to-b from-[#092233] to-[#010a13] p-2 rounded-sm border border-[#c8aa6e]/60 shadow-[0_0_20px_rgba(0,200,200,0.25)] cursor-pointer hover:border-[#f0e6d2] hover:shadow-[0_0_25px_rgba(200,170,110,0.4)] transition-all flex flex-col items-center justify-center group relative overflow-hidden"
         >
-          <div className="w-full h-full bg-[#010a13] flex flex-col items-center justify-center border border-[#c89b3c]/50 relative group">
-            <Sparkles className="w-7 h-7 text-[#c8aa6e] mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#c8aa6e] tracking-widest uppercase">
-              CHEST
-            </span>
-          </div>
+          {/* Subtle cyan inner glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,200,200,0.15)_0%,_transparent_70%)] pointer-events-none"></div>
+
+          {/* Mini Vector Hextech Chest Preview */}
+          <svg viewBox="0 0 100 80" className="w-20 h-16 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            {/* Base Body */}
+            <rect x="25" y="32" width="50" height="34" rx="2" fill="#0d1b22" stroke="#c89b3c" strokeWidth="2" />
+            <polygon points="25,32 33,32 25,40" fill="#c89b3c" />
+            <polygon points="75,32 67,32 75,40" fill="#c89b3c" />
+            
+            {/* Flanking Mini Brackets */}
+            <path d="M 18 30 C 12 42 12 56 18 64" stroke="#c89b3c" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M 82 30 C 88 42 88 56 82 64" stroke="#c89b3c" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M 19 36 C 15 44 15 52 19 58" stroke="#00ffff" strokeWidth="1" strokeLinecap="round" fill="none" />
+            <path d="M 81 36 C 85 44 85 52 81 58" stroke="#00ffff" strokeWidth="1" strokeLinecap="round" fill="none" />
+
+            {/* Lid */}
+            <polygon points="22,32 30,16 70,16 78,32" fill="#1a2e38" stroke="#f0e6d2" strokeWidth="2" />
+            <rect x="42" y="12" width="16" height="6" fill="#c89b3c" rx="1" />
+
+            {/* Cyan Core Crystal */}
+            <polygon points="50,30 58,40 50,50 42,40" fill="#c89b3c" />
+            <polygon points="50,33 55,40 50,47 45,40" fill="#00ffff" className="animate-pulse" />
+            <circle cx="50" cy="40" r="1.5" fill="#ffffff" />
+          </svg>
+
+          <span className="text-[10px] font-bold text-[#c8aa6e] tracking-widest uppercase mt-1 group-hover:text-[#f0e6d2] transition-colors">
+            AÇ (OPEN)
+          </span>
         </motion.div>
 
-        <p className="text-[10px] text-[#a09b8c] mt-3 uppercase tracking-wider font-semibold">
-          Costs 1 Key • You have {state.keys}
+        <p className="text-[10px] text-[#a09b8c] mt-2.5 uppercase tracking-wider font-semibold">
+          1 Anahtar Gerekir • Sende: <span className="text-[#00c8c8] font-bold">{state.keys}</span>
         </p>
 
         {/* Action buttons */}
@@ -61,27 +85,27 @@ export const RightHextechPanel: React.FC = () => {
           <button
             onClick={() => handleChestClick(1)}
             disabled={state.keys < 1}
-            className={`py-2 px-2 rounded-sm font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`py-2 px-2 rounded-xs font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
               state.keys >= 1
-                ? 'bg-[#c89b3c] hover:bg-[#f0e6d2] text-[#010a13]'
+                ? 'bg-[#c89b3c] hover:bg-[#f0e6d2] text-[#010a13] shadow'
                 : 'bg-[#1e2328] text-[#5c5b57] cursor-not-allowed'
             }`}
           >
             <Key className="w-3 h-3" />
-            <span>Open x1</span>
+            <span>1x Aç</span>
           </button>
 
           <button
             onClick={() => handleChestClick(5)}
             disabled={state.keys < 5}
-            className={`py-2 px-2 rounded-sm font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`py-2 px-2 rounded-xs font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
               state.keys >= 5
-                ? 'border border-[#00c8c8] text-[#00c8c8] hover:bg-[#00c8c8]/10'
+                ? 'border border-[#00c8c8] text-[#00c8c8] hover:bg-[#00c8c8]/10 shadow'
                 : 'bg-[#1e2328] text-[#5c5b57] cursor-not-allowed'
             }`}
           >
             <Zap className="w-3 h-3" />
-            <span>Open x5</span>
+            <span>5x Aç</span>
           </button>
         </div>
       </div>
